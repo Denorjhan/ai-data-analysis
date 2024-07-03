@@ -18,11 +18,11 @@ from utils import get_value_from_text
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 
-class Orchestrator(ChromaDB_VectorStore, OpenAI_Chat):
+class Orchestrator(ChromaDB_VectorStore, Anthropic_Chat):
     def __init__(self, config=None):
         ChromaDB_VectorStore.__init__(self, config=config)
-        OpenAI_Chat.__init__(self, config=config)
-        # Anthropic_Chat.__init__(self, config=config)
+        # OpenAI_Chat.__init__(self, config=config)
+        Anthropic_Chat.__init__(self, config=config)
         # GroqLLM.__init__(self, config=config)
 
     def generate_sql(self, question: str, **kwargs) -> str:
@@ -112,7 +112,7 @@ class Orchestrator(ChromaDB_VectorStore, OpenAI_Chat):
             return f"Error debugging SQL prompt: {str(e)}"
 
     def is_sql_valid(self, sql: str, question: str, max_attempts: int = 3) -> bool:
-        from athena import execute_query_with_autocorrect
+        from athena import syntax_checker
 
         attempt = 1
         # the sql statment goes through two checks
@@ -120,7 +120,7 @@ class Orchestrator(ChromaDB_VectorStore, OpenAI_Chat):
         # 2. syntax_checker checks if the sql statement is syntactically correct
         while attempt <= max_attempts:
             if self.is_sql_select(sql):
-                syntax_feedback = execute_query_with_autocorrect(sql)
+                syntax_feedback = syntax_checker(sql)
                 if syntax_feedback == "Passed":
                     return True
                 else:
@@ -146,9 +146,9 @@ class Orchestrator(ChromaDB_VectorStore, OpenAI_Chat):
     ) -> str:
         result, filled_prompts = MinimalChainable.run(
             context={
-                "question": question,
-                "sql": sql,
-                "df_metadata": df_metadata,  # might need to be df.dtypes
+                "QUESTION": question,
+                "SQL": sql,
+                "DF_METADATA": df_metadata,  # might need to be df.dtypes
             },
             model=self,
             callable=self.submit_prompt,
@@ -157,12 +157,15 @@ class Orchestrator(ChromaDB_VectorStore, OpenAI_Chat):
                 generate_plotly_code_prompt
             ],
         )
+        print("#############################Filled prompts#############################")
+        print(filled_prompts)
         print("########### PLOTLY CODE RESPONSE FROM LLM ###########")
         print(result)
         # json_result = json.loads(result[0])
         plotly_code = get_value_from_text(result[0], "plotly_code")
+        print(f"########### PLOTLY CODE RESPONSE FROM LLM ########### {plotly_code}")
 
-        code = self._sanitize_plotly_code(self._extract_python_code(plotly_code))
+        code = self._sanitize_plotly_code(plotly_code)
         return code
 
     def generate_summary(self, question: str, df: pd.DataFrame, **kwargs) -> str:
@@ -330,10 +333,10 @@ def set_run_sql(engine):
     engine.run_sql_is_set = True
 
 
-# engine = Orchestrator(config={'api_key': os.getenv('ANTHROPIC_API_KEY'), 'model': 'claude-3-5-sonnet-20240620'})
-engine = Orchestrator(
-    config={"api_key": os.getenv("OPENAI_API_KEY"), "model": "gpt-3.5-turbo"}
-)
+engine = Orchestrator(config={'api_key': os.getenv('ANTHROPIC_API_KEY'), 'model': 'claude-3-5-sonnet-20240620', 'max_tokens': 1500})
+# engine = Orchestrator(
+#     config={"api_key": os.getenv("OPENAI_API_KEY"), "model": "gpt-3.5-turbo"}
+# )
 # engine = Orchestrator(config={'api_key': os.getenv('GROQ_API_KEY'), 'model': 'llama3-8b-8192'})
 # engine = Orchestrator(config={'api_key': os.getenv('GROQ_API_KEY'), 'model': 'llama3-70b-8192'})
 

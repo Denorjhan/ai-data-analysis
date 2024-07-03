@@ -21,7 +21,7 @@ def execute_query_with_autocorrect(
 ) -> pd.DataFrame:
     athena_client = aws_client.get_athena_client()
     attempt = 0
-    output_location = f"s3://{config['aws']['athena']['output_location']}"
+    output_location = config['aws']['athena']['output_location']
     catalog = config["aws"]["athena"]["catalog"]
     database = config["aws"]["glue"]["database"]
 
@@ -85,7 +85,7 @@ def execute_query_with_autocorrect(
 def syntax_checker(query_string):
     athena_client = aws_client.get_athena_client()
     # print("Inside execute query", query_string)
-    output_location = f"s3://{config['aws']['athena']['output_location']}"
+    output_location = config['aws']['athena']['output_location']
     catalog = config["aws"]["athena"]["catalog"]
     database = config["aws"]["glue"]["database"]
 

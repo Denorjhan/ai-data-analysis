@@ -155,13 +155,13 @@ if "show_table" not in st.session_state.keys():
     st.session_state.show_table = True
 
 if "show_plotly_code" not in st.session_state.keys():
-    st.session_state.show_plotly_code = False
+    st.session_state.show_plotly_code = True
 
 if "show_chart" not in st.session_state.keys():
-    st.session_state.show_chart = False
+    st.session_state.show_chart = True
 
 if "show_summary" not in st.session_state.keys():
-    st.session_state.show_summary = False
+    st.session_state.show_summary = True
 
 if "show_followup" not in st.session_state.keys():
     st.session_state.show_followup = False

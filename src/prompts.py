@@ -30,7 +30,7 @@ To answer this question and generate an appropriate SQL query, follow these step
 
 When generating SQL queries, adhere to these guidelines:
 - Use the most relevant table(s) to get the exact column names and data types. Never guess column names.
-- Use quotes around column names (e.g., "column name" or "column_name" depending on the ddl) for clarity and to avoid ambiguity.
+- All coloumn names must use quotes around the name (e.g., "column name" or "column_name" depending on the ddl) to avoid errors.
 - Do not use column aliases defined in the SELECT clause in the GROUP BY or ORDER BY clauses. Instead, repeat the full expressions.
 - When working with dates, ensure that the date column is of type DATE. Use the date_parse function to parse the date in the correct format.
 - If the question has been asked and answered before, repeat the answer exactly as it was given before.
@@ -169,7 +169,7 @@ Begin your debugging process now, and provide your output in the specified forma
 
 # Remember, your goal is to create a chart that best visualizes the data and helps answer the user's question. Think carefully about your choices and prioritize clarity and insight generation in your visualization."""
 
-generate_plotly_code_prompt = """You are an Data visualization expert specializing in plotly charats in python tasked with generating a Plotly chart to visualize data from a pandas DataFrame. Your goal is to create a chart that best represents the data and facilitates easy insight generation and analysis. Follow these instructions carefully:
+generate_plotly_code_prompt = """You are a Data visualization expert specializing in Plotly charts in Python. Your task is to generate a Plotly chart to visualize data from a pandas DataFrame. Your goal is to create a chart that best represents the data and facilitates easy insight generation and analysis. Follow these instructions carefully:
 
 1. You will be provided with the following information:
    <question>{{QUESTION}}</question>
@@ -206,6 +206,7 @@ generate_plotly_code_prompt = """You are an Data visualization expert specializi
    - If there is only one value in the DataFrame, use a Plotly Indicator.
    - Generate only Python code; do not include any explanations or comments.
    - Do not include fig.show() in the code.
+   - If you are going to import a library, import it at the beginning of the code.
 
 6. Your final output must strictly be in the following format, with the correct brackets and tags:
 
@@ -215,5 +216,9 @@ generate_plotly_code_prompt = """You are an Data visualization expert specializi
 <plotly_code>
 [The generated Python Plotly code]
 </plotly_code>
+
+7. Ensure that you always close all tags properly, including the </plotly_code> tag at the end of your code.
+
+8. Make sure to complete the entire code within the <plotly_code> tags. Do not leave any code unfinished or cut off.
 
 Remember, your primary goal is to create a chart that best visualizes the data and helps answer the user's question. Pay special attention to selecting the most appropriate chart type based on the data and question. Think carefully about your choices and prioritize clarity and insight generation in your visualization."""

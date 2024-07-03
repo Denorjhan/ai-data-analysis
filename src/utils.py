@@ -4,8 +4,14 @@ import pyarrow.parquet as pq
 from io import BytesIO
 
 
-def get_value_from_text(text, key):
-    pattern = f"<{key}>(.*?)</{key}>"
+def get_value_from_text(text, key, end_key=False):
+    if end_key:
+        # Search for the <key> up to the end of the text minus 3 characters
+        pattern = f"<{key}>(.*)"
+    else:
+        # Search for the <key> and </{key}> tags
+        pattern = f"<{key}>(.*?)</{key}>"
+    
     match = re.search(pattern, text, re.DOTALL)  # Added re.DOTALL flag
     if match:
         return match.group(1)

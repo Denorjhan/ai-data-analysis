@@ -55,14 +55,14 @@ class MinimalChainable:
             result = callable(structured_prompt)
 
             # Try to parse the result as JSON, handling markdown-wrapped JSON
-            try:
-                # json_match = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", result)
-                json_match = re.search(r"{.*}", result)
-                if json_match:
-                    result = json.loads(result.replace("'", '"'))
-            except json.JSONDecodeError:
-                print(f"Error decoding JSON")
-                traceback.print_exc()
+            # try:
+            #     # json_match = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", result)
+            #     json_match = re.search(r"{.*}", result)
+            #     if json_match:
+            #         result = json.loads(result.replace("'", '"'))
+            # except json.JSONDecodeError:
+            #     print(f"Error decoding JSON")
+            #     traceback.print_exc()
 
             # Append the result to the output list
             output.append(result)
