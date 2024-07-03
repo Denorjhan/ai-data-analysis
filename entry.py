@@ -6,7 +6,7 @@ import streamlit as st
 # Define the pages
 pages = {
     "Data Management": [
-        st.Page("upload_files.py", title="Upload Data", icon="📥"),
+        st.Page("upload_files.py", title="Data Sources", icon="📥"),
         # st.Page("dev/test_chat.py", title="Data Catalog", icon="🗃️"),
         st.Page("llm_training_data.py", title="LLM Training Data", icon="📚"),
         st.Page("dev/testing.py", title="Testing", icon="🧪"),

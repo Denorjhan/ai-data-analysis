@@ -1,6 +1,6 @@
 import streamlit as st
 
-from main import engine
+from orchestrator import engine
 
 
 # @st.cache_resource(ttl=3600)
@@ -17,9 +17,9 @@ def generate_questions_cached():
 
 
 @st.cache_data(show_spinner="Generating SQL query ...")
-def generate_sql_cached(question: str):
+def generate_sql_cached(question: str, **kwargs):
     
-    return engine.generate_sql(question=question, allow_llm_to_see_data=True)
+    return engine.generate_sql(question=question, **kwargs)
 
 
 @st.cache_data(show_spinner="Checking for valid SQL ...")
@@ -29,9 +29,9 @@ def is_sql_valid_cached(sql: str):
 
 
 @st.cache_data(show_spinner="Running SQL query ...")
-def run_sql_cached(sql: str):
+def run_sql_cached(sql: str, question: str):
     
-    return engine.run_sql(sql=sql)
+    return engine.run_sql(sql=sql, question=question)
 
 
 @st.cache_data(show_spinner="Checking if we should generate a chart ...")
@@ -43,7 +43,7 @@ def should_generate_chart_cached(df):
 @st.cache_data(show_spinner="Generating Plotly code ...")
 def generate_plotly_code_cached(question, sql, df):
     
-    code = engine.generate_plotly_code(question=question, sql=sql, df=df)
+    code = engine.generate_plotly_code(question=question, sql=sql, df_metadata=df)
     return code
 
 

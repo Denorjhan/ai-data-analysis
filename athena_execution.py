@@ -4,7 +4,7 @@ import os, sys
 import re
 
 # sys.path.append("/home/ec2-user/SageMaker/llm_bedrock_v0/")
-from boto_client import Clientmodules
+from aws_clients import Clientmodules
 import time
 import pandas as pd
 import io
@@ -19,13 +19,75 @@ logger.addHandler(logging.StreamHandler())
 class AthenaQueryExecute:
     def __init__(self, config):
         self.config = config
-        self.glue_databucket_name = self.config["glue_databucket_name"]
+        self.glue_databucket_name = self.config["glue_databucket_name"] # output location
         self.athena_client = Clientmodules.createAthenaClient()
         self.s3_client = Clientmodules.createS3Client()
         self.orchestrator = None
 
-    def execute_query(self, sql: str) -> pd.DataFrame:
-        max_attempts = 3
+    # def execute_query(self, sql: str) -> pd.DataFrame:
+    #     max_attempts = 3
+    #     attempt = 0
+    #     result_folder = self.config["result_folder"]
+    #     result_config = {
+    #         "OutputLocation": f"s3://{self.glue_databucket_name}/{result_folder}"
+    #     }
+    #     query_execution_context = {
+    #         "Catalog": "AwsDataCatalog",
+    #         "Database": self.config["database"],
+    #     }
+
+    #     while attempt < max_attempts:
+    #         try:
+    #             print(f"Attempt {attempt + 1}")
+    #             print(f"Executing: {sql}")
+    #             query_execution = self.athena_client.start_query_execution(
+    #                 QueryString=sql,
+    #                 ResultConfiguration=result_config,
+    #                 QueryExecutionContext=query_execution_context,
+    #             )
+    #             execution_id = query_execution["QueryExecutionId"]
+
+    #             # wait for the query to complete
+    #             while True:
+    #                 response = self.athena_client.get_query_execution(
+    #                     QueryExecutionId=execution_id
+    #                 )
+    #                 status = response["QueryExecution"]["Status"]["State"]
+    #                 if status in ["SUCCEEDED", "FAILED", "CANCELLED"]:
+    #                     break
+    #                 print(f"Query status: {status}. Waiting for completion...")
+    #                 time.sleep(0.5)  # Wait before checking again
+
+    #             # at this point the query is executed with either sucess, fail, or cancel
+    #             if status == "SUCCEEDED":
+    #                 break
+    #             elif attempt + 1 < max_attempts:
+    #                 # regenerate sql and iterate back over the while loop
+    #                 attempt += 1
+    #                 error_message = response["QueryExecution"]["Status"][
+    #                     "StateChangeReason"
+    #                 ]
+    #                 print(f"Error message: {error_message}")
+    #                 prompt = f"""This is an error: {error_message} for the following sql query {sql}. 
+    #                 To correct this, please generate an alternative SQL query which will correct the mentioned errors.
+    #                 The updated query should take care of all the errors present.
+    #                 Follow the instructions mentioned above to remediate the error. 
+    #                 You will alos be provided with a list of ddl statements.
+    #                 Update the below SQL query to resolve all errors."""
+    #                 print("REGENERATING SQL **************************")
+    #                 sql = self.orchestrator.generate_sql(question=prompt, retry=True)
+    #                 print(f"#########NEW SQL: {sql}")
+    #             # if the query is not successful after max attempts, raise an error
+    #             else:
+    #                 raise Exception(f"Query failed after {attempt} attempts.")
+    #         except Exception as e:
+    #             print(traceback.format_exc())
+    #             raise Exception(f"Query failed with error: {e}")
+
+    #     df = self.get_csv_results(execution_id, result_folder)
+    #     return df
+
+    def new_execution(self, sql: str, question: str, max_attempts: int = 3) -> pd.DataFrame:
         attempt = 0
         result_folder = self.config["result_folder"]
         result_config = {
@@ -35,7 +97,7 @@ class AthenaQueryExecute:
             "Catalog": "AwsDataCatalog",
             "Database": self.config["database"],
         }
-
+        
         while attempt < max_attempts:
             try:
                 print(f"Attempt {attempt + 1}")
@@ -46,7 +108,7 @@ class AthenaQueryExecute:
                     QueryExecutionContext=query_execution_context,
                 )
                 execution_id = query_execution["QueryExecutionId"]
-
+                
                 # wait for the query to complete
                 while True:
                     response = self.athena_client.get_query_execution(
@@ -57,33 +119,27 @@ class AthenaQueryExecute:
                         break
                     print(f"Query status: {status}. Waiting for completion...")
                     time.sleep(0.5)  # Wait before checking again
-
-                # at this point the query is executed with either sucess, fail, or cancel
+                    
                 if status == "SUCCEEDED":
-                    break
-                elif attempt + 1 < max_attempts:
-                    # regenerate sql and iterate back over the while loop
+                   break
+               # debug and validate query
+                elif attempt + 1 <= max_attempts:
                     attempt += 1
-                    error_message = response["QueryExecution"]["Status"][
-                        "StateChangeReason"
-                    ]
-                    print(f"Error message: {error_message}")
-                    prompt = f"""This is an error: {error_message} for the following sql query {sql}. 
-                    To correct this, please generate an alternative SQL query which will correct the mentioned errors.
-                    The updated query should take care of all the errors present.
-                    Follow the instructions mentioned above to remediate the error. 
-                    You will alos be provided with a list of ddl statements.
-                    Update the below SQL query to resolve all errors."""
-                    print("REGENERATING SQL **************************")
-                    sql = self.orchestrator.generate_sql(question=prompt, retry=True)
-                    print(f"#########NEW SQL: {sql}")
-                # if the query is not successful after max attempts, raise an error
+                    # regenerate sql and iterate back over the while loop
+                    error_message = response["QueryExecution"]["Status"]["StateChangeReason"]
+                    sql = self.orchestrator.debug_sql(sql=sql, error_message=error_message, question=question, retry=True)
+                    if self.orchestrator.is_sql_valid(sql, question):
+                        attempt += 1
+                    else:
+                        raise Exception(f"Query failed to fix the error after.")
                 else:
-                    raise Exception(f"Query failed after {attempt} attempts.")
+                    error_message = response["QueryExecution"]["Status"]["StateChangeReason"]
+                    raise Exception(f"Query failed after {attempt} attempts with the following error: {error_message}")
+                    
             except Exception as e:
                 print(traceback.format_exc())
                 raise Exception(f"Query failed with error: {e}")
-
+        
         df = self.get_csv_results(execution_id, result_folder)
         return df
 
@@ -148,7 +204,7 @@ class AthenaQueryExecute:
         """
 
         # Execute the query and load the results into a DataFrame
-        tables_df = self.execute_query(tables_query)
+        tables_df = self.new_execution(tables_query)
         # Iterate over all tables and generate DDL
         ddl_statements = {}
         for table_name in tables_df["table_name"]:

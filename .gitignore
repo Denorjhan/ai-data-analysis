@@ -176,3 +176,6 @@ scripts/*
 
 # chroma database
 chroma.*
+
+# aws config
+config.yaml

@@ -172,6 +172,7 @@ content_handlers = {
     "dataframe": handle_dataframe
 }
 
+# print prior chat messages when streamlit runs the script from top to bottom
 for message in st.session_state.messages: 
     with st.chat_message(message["role"], avatar=message["avatar"]):
         content = message["content"]
@@ -190,25 +191,33 @@ if st.session_state.messages[-1]["role"] != "assistant":
     with st.spinner("Thinking..."):
         my_question = st.session_state.messages[-1]["content"]
         # display the sql
-        sql = generate_sql_cached(question=my_question)
+        sql, sql_explanation, clarification_request = generate_sql_cached(question=my_question, explain=True)
         if sql:
-            if is_sql_valid_cached(sql=sql):
-                if st.session_state.get("show_sql", True):
-                    assistant_message_sql = st.chat_message(
-                        "assistant", avatar=ai_icon 
-                    )
-                    assistant_message_sql.code(sql, language="sql", line_numbers=True)
-                    st.session_state.messages.append({"role": "assistant", "content": sql, "avatar": ai_icon, "content_type": "code"})
-
-            else:
-                assistant_message = st.chat_message(
+            if st.session_state.get("show_sql", True):
+                assistant_message_sql = st.chat_message(
+                    "assistant", avatar=ai_icon 
+                )
+                assistant_message_sql.code(sql, language="sql", line_numbers=True)
+                st.session_state.messages.append({"role": "assistant", "content": sql, "avatar": ai_icon, "content_type": "code"})
+                # print explanation of sql
+                assistant_message_sql.write(sql_explanation)
+                st.session_state.messages.append({"role": "assistant", "content": sql_explanation, "avatar": ai_icon, "content_type": "text"})
+            if clarification_request:
+                assistant_message_clarification = st.chat_message(
                     "assistant", avatar=ai_icon
                 )
-                assistant_message.write(sql)
-                st.stop()
+                assistant_message_clarification.write(clarification_request)
+                st.session_state.messages.append({"role": "assistant", "content": clarification_request, "avatar": ai_icon, "content_type": "text"})
+
+            # else:
+            #     assistant_message = st.chat_message(
+            #         "assistant", avatar=ai_icon
+            #     )
+            #     assistant_message.write(sql)
+            #     st.stop()
 
             # display the table
-            df = run_sql_cached(sql=sql)
+            df = run_sql_cached(sql=sql, question=my_question)
             if df is not None:
                 st.session_state["df"] = df
 
@@ -281,7 +290,18 @@ if st.session_state.messages[-1]["role"] != "assistant":
                     # Print the first 5 follow-up questions
                     for question in followup_questions[:5]:
                         assistant_message_followup.button(question, on_click=set_user_question, args=(question,))
-
+        else:
+            assistant_message_sql_explanation = st.chat_message(
+                "assistant", avatar=ai_icon
+            )
+            assistant_message_sql_explanation.write(sql_explanation)
+            st.session_state.messages.append({"role": "assistant", "content": sql_explanation, "avatar": ai_icon, "content_type": "text"})
+            if clarification_request:
+                assistant_message_clarification = st.chat_message(
+                    "assistant", avatar=ai_icon
+                )
+                assistant_message_clarification.write(clarification_request)
+                st.session_state.messages.append({"role": "assistant", "content": clarification_request, "avatar": ai_icon, "content_type": "text"})
             
         # ask the model
         # response = model.ask(st.session_state.messages[-1]["content"])
