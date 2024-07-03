@@ -15,8 +15,8 @@ This is a simplified diagram of the backend logic.
 
 ### Data Ingestion
 
-![Data Ingestion](images/data_ingestion.png)
+![Data Ingestion](assets/data_ingestion.png)
 
 ### Data Analysis
 
-![Data Analysis](images/data_analysis.png)
+![Data Analysis](assets/data_analysis.png)
