@@ -1,6 +1,6 @@
-from aws_clients import aws_client
 import time
-from aws_clients import config
+from aws_clients import config, aws_client
+
 
 def create_glue_crawler(crawler_name, database_name, s3_target_path):
     glue_client = aws_client.get_glue_client()
@@ -13,7 +13,7 @@ def create_glue_crawler(crawler_name, database_name, s3_target_path):
 
     response = glue_client.create_crawler(
         Name=crawler_name,
-        Role=config['aws']['glue']['role'],
+        Role=config["aws"]["glue"]["role"],
         DatabaseName=database_name,
         Targets={
             "S3Targets": [
@@ -41,7 +41,7 @@ def run_glue_crawler(crawler_name):
     while True:
         response = glue_client.get_crawler(Name=crawler_name)
         state = response["Crawler"]["State"]
-        if state == "READY": # change to stopping
+        if state == "READY":  # change to stopping
             print(f"Crawler {crawler_name} finished successfully.")
             break
         elif state == "FAILED":

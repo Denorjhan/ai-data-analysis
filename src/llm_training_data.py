@@ -1,5 +1,5 @@
 import streamlit as st
-from main import engine
+from dev.main import engine
 import pandas as pd
 from pandas.api.types import (
     is_categorical_dtype,
@@ -30,7 +30,10 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     with modification_container:
         st.subheader("Filter Training Data By:")
         to_filter_columns = st.multiselect(
-            label="hidden text", placeholder="Choose a filter", options=df.columns, label_visibility="collapsed"
+            label="hidden text",
+            placeholder="Choose a filter",
+            options=df.columns,
+            label_visibility="collapsed",
         )
         for column in to_filter_columns:
             left, right = st.columns((1, 20))

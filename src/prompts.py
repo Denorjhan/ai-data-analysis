@@ -1,4 +1,4 @@
-generate_sql_prompt="""You are an AWS ATHENA SQL expert tasked with creating AWS Athena SQL queries based on user questions in natural language. Your goal is to generate accurate and efficient SQL queries that answer the user's question using the provided database schema and context.
+generate_sql_prompt = """You are an AWS ATHENA SQL expert tasked with creating AWS Athena SQL queries based on user questions in natural language. Your goal is to generate accurate and efficient SQL queries that answer the user's question using the provided database schema and context.
 
 First, review the following database DDL statements:
 <database_ddl>
@@ -61,7 +61,7 @@ Present your response in strictly in the following format below with the followi
 
 Remember to always prioritize accuracy and relevance in your SQL queries based on the user's question and the available database schema."""
 
-debug_sql_prompt="""You are an AWS Athena SQL expert specialized in debugging AWS Athena SQL queries. Your task is to analyze a given SQL query that was generated to answer a user's question, identify the cause of the error, and provide a corrected SQL query that resolves the issue while still answering the original question.
+debug_sql_prompt = """You are an AWS Athena SQL expert specialized in debugging AWS Athena SQL queries. Your task is to analyze a given SQL query that was generated to answer a user's question, identify the cause of the error, and provide a corrected SQL query that resolves the issue while still answering the original question.
 
 Here's the context you'll be working with:
 
@@ -144,7 +144,7 @@ Begin your debugging process now, and provide your output in the specified forma
 #    - The number of variables to be plotted
 #    - The relationships you want to highlight
 #    - The most effective way to represent the data visually
-   
+
 # 3. Follow this step-by-step process to create the chart:
 #    a. Determine the best type of chart to visualize the data based on the question and data types.
 #    b. Select the appropriate columns for each axis.
@@ -169,7 +169,7 @@ Begin your debugging process now, and provide your output in the specified forma
 
 # Remember, your goal is to create a chart that best visualizes the data and helps answer the user's question. Think carefully about your choices and prioritize clarity and insight generation in your visualization."""
 
-generate_plotly_code_prompt="""You are an Data visualization expert specializing in plotly charats in python tasked with generating a Plotly chart to visualize data from a pandas DataFrame. Your goal is to create a chart that best represents the data and facilitates easy insight generation and analysis. Follow these instructions carefully:
+generate_plotly_code_prompt = """You are an Data visualization expert specializing in plotly charats in python tasked with generating a Plotly chart to visualize data from a pandas DataFrame. Your goal is to create a chart that best represents the data and facilitates easy insight generation and analysis. Follow these instructions carefully:
 
 1. You will be provided with the following information:
    <question>{{QUESTION}}</question>
